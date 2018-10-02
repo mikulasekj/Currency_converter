@@ -1,5 +1,6 @@
 from forex_python.converter import CurrencyRates
 from forex_python.converter import CurrencyCodes
+
 import json
 
 class WrongInputCurrencyError(Exception):
@@ -45,7 +46,7 @@ class convertor:
                 raise WrongInputCurrencyError
             if self.output_currency not in self.currency_code_list:
                 raise WrongOutputCurrencyError
-            if not isinstance(self.amount ,float):
+            if not isinstance(self.amount ,(int,float)):
                 raise ValueError
         except WrongInputCurrencyError:
             print('Input currency is not supported' )
@@ -58,7 +59,7 @@ class convertor:
             raise
             
             
-    def convert(self):
+    def toConvert(self):
         
         c=CurrencyRates()
         self.convert_symbols()

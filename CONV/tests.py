@@ -1,11 +1,14 @@
 import unittest
+from unittest import TestCase
+from unittest.mock import Mock,patch
+import json
 
 import convertor
 
-class TestConvertor(unittest.TestCase):
+class TestConvertor(TestCase):
 
     def setUp(self):
-        self.test_conv_1=convertor.convertor('CZK',15,'EUR')
+        self.test_conv_1=convertor.convertor('CZK',15.0,'EUR')
         self.test_conv_2=convertor.convertor('Kč',15,'€')
         self.test_conv_3=convertor.convertor('xxx',15,'€')
         self.test_conv_3.convert_symbols()
@@ -55,7 +58,17 @@ class TestConvertor(unittest.TestCase):
              self.test_conv_5.check_inputs()
 
 
-
+#test toCovert function with mocked forex convert function 
+    @patch('forex_python.converter.CurrencyRates.convert')
+    def test_toConvert(self,MockConvert):
+        MockConvert.return_value=60
+        result_json=self.test_conv_1.toConvert()
+        #print(result_json)
+        expected={"input":{"currency":"CZK","amount":15.0},"output":{"EUR":60}}
+        expected_json=json.dumps(expected,indent=4)
+        
+        self.assertIsInstance(result_json, str)        
+        self.assertEqual(expected_json,result_json)
         
 
 if __name__ == '__main__':

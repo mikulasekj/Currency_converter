@@ -19,6 +19,7 @@ print(forex_dict)
 print(len(forex_dict),len(forex_list))
 
 json_forex = json.dumps(forex_dict,indent=4)
+print(type(json_forex))
 
 with open('forex_currencies.json','w',encoding="utf8") as f:
     f.write(json_forex)

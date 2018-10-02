@@ -15,4 +15,4 @@ print(amount,type(amount),input_currency,type(input_currency),output_currency,ty
 
 c=convertor.convertor(input_currency,amount,output_currency)
 
-print(c.convert())
+print(c.toConvert())
