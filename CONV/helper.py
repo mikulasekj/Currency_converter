@@ -23,3 +23,5 @@ print(type(json_forex))
 
 with open('forex_currencies.json','w',encoding="utf8") as f:
     f.write(json_forex)
+
+#http://localhost:5000/currency_convertor?amount=10.2&input_currency=USD&output_currency=EUR
