@@ -1,13 +1,19 @@
 from forex_python.converter import CurrencyRates
 from forex_python.converter import CurrencyCodes
 
+import logging
+
+logging.basicConfig(level=logging.CRITICAL)
+
 import json
 
 class WrongInputCurrencyError(Exception):
-    pass
+    def __init__(self):
+        self.message='Wrong inputs.'
 
 class WrongOutputCurrencyError(Exception):
-    pass
+    def __init__(self):
+        self.message='Wrong outputs.'
 
 class convertor:
 
@@ -16,6 +22,8 @@ class convertor:
         self.input_currency=input_currency
         self.output_currency=output_currency
         self.amount=amount
+
+        logging.debug("Inputs: {},{},{})".format(self.input_currency, self.output_currency,self.amount))
 
     # load the json file with currencies codes and symbols
         with open('forex_currencies.json',encoding="utf8") as f:
@@ -41,18 +49,19 @@ class convertor:
             self.output_currency=self.symbol_code_dict[self.output_currency]
 
     def check_inputs(self):
+        logging.debug("Inputs: {},{},{})".format(self.input_currency,self.amount, self.output_currency))
         try:
             if self.input_currency not in self.currency_code_list:
                 raise WrongInputCurrencyError
-            if self.output_currency not in self.currency_code_list:
+            if self.output_currency not in self.currency_code_list and self.output_currency!=None:
                 raise WrongOutputCurrencyError
             if not isinstance(self.amount ,(int,float)):
                 raise ValueError
-        except WrongInputCurrencyError:
-            print('Input currency is not supported' )
+        except WrongInputCurrencyError as e:
+            print(e.message)
             raise
-        except WrongOutputCurrencyError:
-            print('Output currency is not supported' )
+        except WrongOutputCurrencyError as e:
+            print(e.message)
             raise
         except ValueError:
             print('Amount must be a number' )
