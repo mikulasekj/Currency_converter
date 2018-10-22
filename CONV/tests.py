@@ -20,7 +20,7 @@ class TestConvertor(TestCase):
         self.test_conv_5=convertor.convertor('CZK','xxx','$')
         self.test_conv_5.convert_symbols()
         self.test_conv_6=convertor.convertor('CZK',15.0)
-        #pass
+        
     # test if attributes of convertor object are properly created and has correct types
     def test_create_convertor(self):
         self.assertTrue(hasattr(self.test_conv_1,'input_currency'))

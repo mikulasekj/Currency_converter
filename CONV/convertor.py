@@ -3,9 +3,9 @@ from forex_python.converter import CurrencyCodes
 
 import logging
 
-logging.basicConfig(level=logging.CRITICAL)
-
 import json
+
+logging.basicConfig(level=logging.CRITICAL)
 
 class WrongInputCurrencyError(Exception):
     def __init__(self):
@@ -17,6 +17,7 @@ class WrongOutputCurrencyError(Exception):
 
 class convertor:
 
+    #initialize the object of convertor class with given atributes
     def __init__(self,input_currency,amount,output_currency=None):
         
         self.input_currency=input_currency
@@ -29,8 +30,7 @@ class convertor:
         with open('forex_currencies.json',encoding="utf8") as f:
             data = json.load(f)
 
-        # code=[x for x in data]
-        # self.code_symbol_dict={x:data[x]['symbol'] for x in code}
+    #create dictionary with key as a code and symbol as a value
         self.code_symbol_dict=data
 
     #create dictionary with key as a symbol and code as a value
@@ -38,9 +38,9 @@ class convertor:
 
     #create lists of currencies symbols and codes
         self.currency_code_list=list(self.code_symbol_dict.keys())
-        self.currency_symbol_list=list(self.symbol_code_dict.keys())
+        self.currency_symbol_list=list(self.symbol_code_dict.keys()) 
 
-    #if there are any currency symbols as input or ouput, than the function transform them into correspoding code
+    #function to convert input/outpu symbols into correspoding code. 
     def convert_symbols(self):
         if self.input_currency in self.currency_symbol_list:
             self.input_currency=self.symbol_code_dict[self.input_currency]  
@@ -75,7 +75,7 @@ class convertor:
         self.check_inputs()
         output_dict={}     
 
-    # if the output value is not given the whole known(by forex) currencies are shown
+        # if the output value is not given the whole known(by forex) currencies are outputed
         if self.output_currency==None:
             for curr in self.currency_code_list:
                 # if the currency code is not support by forex-python(forex raise the error) than skip the currency
