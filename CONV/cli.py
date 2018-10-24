@@ -13,6 +13,6 @@ input_currency=args.input_currency
 output_currency=args.output_currency
 #print(amount,type(amount),input_currency,type(input_currency),output_currency,type(output_currency))
 
-c=convertor.convertor(input_currency,amount,output_currency)
+c=convertor.Convertor(input_currency,amount,output_currency)
 
-print(c.toConvert())
+print(c.to_convert())

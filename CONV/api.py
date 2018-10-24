@@ -19,8 +19,8 @@ class Inputs(Resource):
         input_currency=args.input_currency
         output_currency=args.output_currency
         
-        c=convertor.convertor(input_currency,amount,output_currency)
-        r=Response(response=c.toConvert())
+        c=convertor.Convertor(input_currency,amount,output_currency)
+        r=Response(response=c.to_convert())
         r.content_type='application/json'
         return r
 

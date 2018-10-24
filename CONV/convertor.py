@@ -15,7 +15,7 @@ class WrongOutputCurrencyError(Exception):
     def __init__(self):
         self.message='Wrong outputs.'
 
-class convertor:
+class Convertor:
 
     #initialize the object of convertor class with given atributes
     def __init__(self,input_currency,amount,output_currency=None):
@@ -68,7 +68,7 @@ class convertor:
             raise
             
             
-    def toConvert(self):
+    def to_convert(self):
         
         c=CurrencyRates()
         self.convert_symbols()
