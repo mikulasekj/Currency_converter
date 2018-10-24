@@ -40,7 +40,7 @@ class Convertor:
         self.currency_code_list=list(self.code_symbol_dict.keys())
         self.currency_symbol_list=list(self.symbol_code_dict.keys()) 
 
-    #function to convert input/outpu symbols into correspoding code. 
+    #function to convert input/outpu symbols into correspoding code of currency. 
     def convert_symbols(self):
         if self.input_currency in self.currency_symbol_list:
             self.input_currency=self.symbol_code_dict[self.input_currency]  
