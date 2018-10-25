@@ -32,8 +32,8 @@ class TestConvertor(TestCase):
         self.assertTrue(hasattr(self.test_conv_1,'amount'))
         self.assertIsInstance(self.test_conv_1.amount, (int,float))
 
-        self.assertTrue(hasattr(self.test_conv_1,'code_symbol_dict'))
-        self.assertIsInstance(self.test_conv_1.code_symbol_dict, dict)
+        # self.assertTrue(hasattr(self.test_conv_1,'code_symbol_dict'))
+        # self.assertIsInstance(self.test_conv_1.code_symbol_dict, dict)
 
         self.assertTrue(hasattr(self.test_conv_1,'symbol_code_dict'))
         self.assertIsInstance(self.test_conv_1.symbol_code_dict, dict)

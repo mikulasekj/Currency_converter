@@ -2,6 +2,8 @@ import argparse
 
 import convertor
 
+#ZABALIT TENTO KÓD DO TŘÍDY NEBO FUNKCE?
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--amount', action="store", type=float)
 parser.add_argument('--input_currency', action="store")

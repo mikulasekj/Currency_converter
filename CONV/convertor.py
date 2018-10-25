@@ -1,11 +1,7 @@
 from forex_python.converter import CurrencyRates
 from forex_python.converter import CurrencyCodes
 
-import logging
-
 import json
-
-logging.basicConfig(level=logging.CRITICAL)
 
 class WrongInputCurrencyError(Exception):
     def __init__(self):
@@ -24,20 +20,19 @@ class Convertor:
         self.output_currency=output_currency
         self.amount=amount
 
-        logging.debug("Inputs: {},{},{})".format(self.input_currency, self.output_currency,self.amount))
-
-    # load the json file with currencies codes and symbols
+        # load the json file with currencies codes and symbols
         with open('forex_currencies.json',encoding="utf8") as f:
-            data = json.load(f)
+            code_symbol_dict = json.load(f)
 
-    #create dictionary with key as a code and symbol as a value
-        self.code_symbol_dict=data
+        #create dictionary with key as a code and symbol as a value
+        #self.code_symbol_dict=data
 
-    #create dictionary with key as a symbol and code as a value
-        self.symbol_code_dict={key:value for value,key in self.code_symbol_dict.items()}
+        #create dictionary with key as a symbol and code as a value
+        #self.symbol_code_dict={key:value for value,key in self.code_symbol_dict.items()}
+        self.symbol_code_dict={key:value for value,key in code_symbol_dict.items()}
 
-    #create lists of currencies symbols and codes
-        self.currency_code_list=list(self.code_symbol_dict.keys())
+        #create lists of currencies symbols and codes
+        self.currency_code_list=list(code_symbol_dict.keys())
         self.currency_symbol_list=list(self.symbol_code_dict.keys()) 
 
     #function to convert input/outpu symbols into correspoding code of currency. 
@@ -49,7 +44,6 @@ class Convertor:
             self.output_currency=self.symbol_code_dict[self.output_currency]
 
     def check_inputs(self):
-        logging.debug("Inputs: {},{},{})".format(self.input_currency,self.amount, self.output_currency))
         try:
             if self.input_currency not in self.currency_code_list:
                 raise WrongInputCurrencyError
@@ -73,18 +67,24 @@ class Convertor:
         c=CurrencyRates()
         self.convert_symbols()
         self.check_inputs()
-        output_dict={}     
+        output_dict={}  
+         
 
         # if the output value is not given the whole known(by forex) currencies are outputed
         if self.output_currency==None:
             for curr in self.currency_code_list:
                 # if the currency code is not support by forex-python(forex raise the error) than skip the currency
                 
-                converted_value=c.convert(self.input_currency,curr,self.amount) 
-                output_dict.update({curr:converted_value})
+                try:
+                    converted_value=c.convert(self.input_currency,curr,self.amount) 
+                    converted_value=round(converted_value,2)
+                    output_dict.update({curr:converted_value})
+                except:
+                    continue
 
         else:
             converted_value=c.convert(self.input_currency,self.output_currency,self.amount)
+            converted_value=round(converted_value,2)
             output_dict={self.output_currency:converted_value}
 
         result_dict={
