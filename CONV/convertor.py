@@ -1,15 +1,19 @@
 from forex_python.converter import CurrencyRates
 from forex_python.converter import CurrencyCodes
 
-import json
+from decimal import Decimal
+
+import simplejson as json
 
 class WrongInputCurrencyError(Exception):
     def __init__(self):
-        self.message='Wrong inputs.'
+        self.message='The input currency is not supported.'
+        
 
 class WrongOutputCurrencyError(Exception):
     def __init__(self):
-        self.message='Wrong outputs.'
+        self.message='The output currency is not supported.'
+        
 
 class Convertor:
 
@@ -24,11 +28,7 @@ class Convertor:
         with open('forex_currencies.json',encoding="utf8") as f:
             code_symbol_dict = json.load(f)
 
-        #create dictionary with key as a code and symbol as a value
-        #self.code_symbol_dict=data
-
         #create dictionary with key as a symbol and code as a value
-        #self.symbol_code_dict={key:value for value,key in self.code_symbol_dict.items()}
         self.symbol_code_dict={key:value for value,key in code_symbol_dict.items()}
 
         #create lists of currencies symbols and codes
@@ -46,9 +46,9 @@ class Convertor:
     def check_inputs(self):
         try:
             if self.input_currency not in self.currency_code_list:
-                raise WrongInputCurrencyError
+                raise WrongInputCurrencyError()
             if self.output_currency not in self.currency_code_list and self.output_currency!=None:
-                raise WrongOutputCurrencyError
+                raise WrongOutputCurrencyError()
             if not isinstance(self.amount ,(int,float)):
                 raise ValueError
         except WrongInputCurrencyError as e:
@@ -64,10 +64,12 @@ class Convertor:
             
     def to_convert(self):
         
+
         c=CurrencyRates()
         self.convert_symbols()
         self.check_inputs()
         output_dict={}  
+        self.amount=Decimal(str(self.amount))
          
 
         # if the output value is not given the whole known(by forex) currencies are outputed
@@ -79,7 +81,7 @@ class Convertor:
                     converted_value=c.convert(self.input_currency,curr,self.amount) 
                     converted_value=round(converted_value,2)
                     output_dict.update({curr:converted_value})
-                except:
+                except RatesNotAvailableError:
                     continue
 
         else:
