@@ -61,9 +61,18 @@ class TestConvertor(TestCase):
         with self.assertRaises(ValueError):
              self.test_conv_5.check_inputs()
 
+    @patch('forex_python.converter.CurrencyRates.get_rates')
+    def test_currency_convert(self,MockRates):
+        MockRates.return_value={'USD':20,'CZK':50}
+        self.test_conv_1._get_actaul_rates()
+        print(self.test_conv_1.forex_rates)
+        print(self.test_conv_1._convert_currency('USD','CZK',100))
 
-    #test toCovert function with mocked forex convert function with given output currency
-    @patch('forex_python.converter.CurrencyRates.convert')
+
+
+
+    #test to_convert function with mocked forex convert function with given output currency
+    @patch('convertor.Convertor._convert_currency')
     def test_to_convert(self,MockConvert):
         MockConvert.return_value=60
         result_json=self.test_conv_1.to_convert()
@@ -74,18 +83,18 @@ class TestConvertor(TestCase):
         self.assertIsInstance(result_json, str)        
         self.assertEqual(expected_json,result_json)
 
-    #test toCovert function with mocked forex convert function with no given output currency 
-    @patch('forex_python.converter.CurrencyRates.convert')
+    #test to_convert function with mocked forex convert function with no given output currency 
+    @patch('convertor.Convertor._convert_currency')
     def test_to_convert(self,MockConvert):
         MockConvert.return_value=60
         result_json=self.test_conv_6.to_convert()
-        logging.debug(result_json)
+        #logging.debug(result_json)
         
         #Create fictive excpected dictionary of output currencies
         output_curr_expected=dict(zip(self.test_conv_6.currency_code_list,
         [MockConvert.return_value]*len(self.test_conv_6.currency_code_list)))
 
-        logging.debug(output_curr_expected)
+        #logging.debug(output_curr_expected)
         expected={"input":{"currency":"CZK","amount":15.0},"output":output_curr_expected}
         expected_json=json.dumps(expected,indent=4)
         

@@ -25,6 +25,8 @@ class Convertor:
         self.output_currency=output_currency
         self.amount=amount
 
+        self.base_currency='EUR'
+
         t1=timeit.default_timer()
         # load the json file with currencies codes and symbols
         with open('forex_currencies.json',encoding="utf8") as f:
@@ -35,10 +37,13 @@ class Convertor:
         self.symbol_code_dict={key:value for value,key in code_symbol_dict.items()}
 
         #create lists of currencies symbols and codes
+
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ODSTRANIT LISTY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         self.currency_code_list=list(code_symbol_dict.keys())
         self.currency_symbol_list=list(self.symbol_code_dict.keys())
         t2=timeit.default_timer()
-        print(t2-t1)
+        #print(t2-t1)
 
     #function to convert input/outpu symbols into correspoding code of currency. 
     def convert_symbols(self):
@@ -65,17 +70,47 @@ class Convertor:
         except ValueError:
             print('Amount must be a number' )
             raise
+
+    def _get_actaul_rates(self):
+        
+        self.forex_rates=CurrencyRates().get_rates(self.base_currency)
+
+    def _convert_currency(self,input_curr,output_curr,amount):
+        """Covnert input currency to output currency using base_currency EUR"""
+
+        amount_in_decimal=Decimal(str(amount))
+
+        if input_curr==output_curr:
+            converted_currency=amount_in_decimal
+
+        elif input_curr==self.base_currency:
+            converted_currency=amount_in_decimal*Decimal(str(self.forex_rates[output_curr]))
+
+        elif output_curr==self.base_currency:
+            converted_currency=amount_in_decimal/Decimal(str(self.forex_rates[input_curr]))
+
+        else:
+            base_amount=amount_in_decimal/Decimal(str(self.forex_rates[input_curr]))
+            converted_currency=base_amount*Decimal(str(self.forex_rates[output_curr]))
+
+        return converted_currency
+
+
+        
             
-    #modify to explicit convert using currency rates dict      
+          
     def to_convert(self):
+        """Covnert input currency to output currency using base_currency EUR"""
+        
+        self._get_actaul_rates()
         
         t1=timeit.default_timer()
-        c=CurrencyRates()
+        
+        
         
         self.convert_symbols()
         self.check_inputs()
         output_dict={}  
-        self.amount_in_decimal=Decimal(str(self.amount))
         t2=timeit.default_timer()
          
 
@@ -85,14 +120,14 @@ class Convertor:
                 # if the currency code is not support by forex-python(forex raise the error) than skip the currency
                 
                 try:
-                    converted_value=c.convert(self.input_currency,curr,self.amount_in_decimal) 
+                    converted_value=self._convert_currency(self.input_currency,curr,self.amount) 
                     converted_value=round(converted_value,2)
                     output_dict.update({curr:converted_value})
                 except RatesNotAvailableError:
                     continue
 
         else:
-            converted_value=c.convert(self.input_currency,self.output_currency,self.amount_in_decimal)
+            converted_value=self._convert_currency(self.input_currency,self.output_currency,self.amount)
             converted_value=round(converted_value,2)
             output_dict={self.output_currency:converted_value}
 
@@ -104,6 +139,6 @@ class Convertor:
         result_json=json.dumps(result_dict,indent=4)
 
         t3=timeit.default_timer()
-        print(t2-t1,',',t3-t2)
+        #print(t2-t1,',',t3-t2)
         return result_json
 
