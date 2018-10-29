@@ -66,7 +66,7 @@ class Convertor:
             print('Amount must be a number' )
             raise
             
-            
+    #modify to explicit convert using currency rates dict      
     def to_convert(self):
         
         t1=timeit.default_timer()
