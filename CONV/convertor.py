@@ -1,5 +1,6 @@
 from forex_python.converter import CurrencyRates
 from forex_python.converter import CurrencyCodes
+import timeit
 
 from decimal import Decimal
 
@@ -24,16 +25,20 @@ class Convertor:
         self.output_currency=output_currency
         self.amount=amount
 
+        t1=timeit.default_timer()
         # load the json file with currencies codes and symbols
         with open('forex_currencies.json',encoding="utf8") as f:
             code_symbol_dict = json.load(f)
+        
 
         #create dictionary with key as a symbol and code as a value
         self.symbol_code_dict={key:value for value,key in code_symbol_dict.items()}
 
         #create lists of currencies symbols and codes
         self.currency_code_list=list(code_symbol_dict.keys())
-        self.currency_symbol_list=list(self.symbol_code_dict.keys()) 
+        self.currency_symbol_list=list(self.symbol_code_dict.keys())
+        t2=timeit.default_timer()
+        print(t2-t1)
 
     #function to convert input/outpu symbols into correspoding code of currency. 
     def convert_symbols(self):
@@ -64,12 +69,14 @@ class Convertor:
             
     def to_convert(self):
         
-
+        t1=timeit.default_timer()
         c=CurrencyRates()
+        
         self.convert_symbols()
         self.check_inputs()
         output_dict={}  
-        self.amount=Decimal(str(self.amount))
+        self.amount_in_decimal=Decimal(str(self.amount))
+        t2=timeit.default_timer()
          
 
         # if the output value is not given the whole known(by forex) currencies are outputed
@@ -78,14 +85,14 @@ class Convertor:
                 # if the currency code is not support by forex-python(forex raise the error) than skip the currency
                 
                 try:
-                    converted_value=c.convert(self.input_currency,curr,self.amount) 
+                    converted_value=c.convert(self.input_currency,curr,self.amount_in_decimal) 
                     converted_value=round(converted_value,2)
                     output_dict.update({curr:converted_value})
                 except RatesNotAvailableError:
                     continue
 
         else:
-            converted_value=c.convert(self.input_currency,self.output_currency,self.amount)
+            converted_value=c.convert(self.input_currency,self.output_currency,self.amount_in_decimal)
             converted_value=round(converted_value,2)
             output_dict={self.output_currency:converted_value}
 
@@ -96,5 +103,7 @@ class Convertor:
 
         result_json=json.dumps(result_dict,indent=4)
 
+        t3=timeit.default_timer()
+        print(t2-t1,',',t3-t2)
         return result_json
 
