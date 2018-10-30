@@ -46,14 +46,14 @@ class Convertor:
         #print(t2-t1)
 
     #function to convert input/outpu symbols into correspoding code of currency. 
-    def convert_symbols(self):
+    def _convert_symbols(self):
         if self.input_currency in self.currency_symbol_list:
             self.input_currency=self.symbol_code_dict[self.input_currency]  
 
         if self.output_currency in self.currency_symbol_list:
             self.output_currency=self.symbol_code_dict[self.output_currency]
 
-    def check_inputs(self):
+    def _check_inputs(self):
         try:
             if self.input_currency not in self.currency_code_list:
                 raise WrongInputCurrencyError()
@@ -100,16 +100,17 @@ class Convertor:
             
           
     def to_convert(self):
-        """Covnert input currency to output currency using base_currency EUR"""
+        """Use "private" functions _get_actual_rates(),_convert_symbols(),_check_outputs() and _conver_currency() 
+           to performe all the neccesary stuff to convert given inpits. 
+           If there is no output currency the input currency is converted into all possilbew currencies
+        """
         
         self._get_actaul_rates()
         
         t1=timeit.default_timer()
         
-        
-        
-        self.convert_symbols()
-        self.check_inputs()
+        self._convert_symbols()
+        self._check_inputs()
         output_dict={}  
         t2=timeit.default_timer()
          
@@ -119,12 +120,10 @@ class Convertor:
             for curr in self.currency_code_list:
                 # if the currency code is not support by forex-python(forex raise the error) than skip the currency
                 
-                try:
-                    converted_value=self._convert_currency(self.input_currency,curr,self.amount) 
-                    converted_value=round(converted_value,2)
-                    output_dict.update({curr:converted_value})
-                except RatesNotAvailableError:
-                    continue
+                converted_value=self._convert_currency(self.input_currency,curr,self.amount) 
+                converted_value=round(converted_value,2)
+                output_dict.update({curr:converted_value})
+                
 
         else:
             converted_value=self._convert_currency(self.input_currency,self.output_currency,self.amount)

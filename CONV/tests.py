@@ -1,7 +1,8 @@
 import unittest
 from unittest import TestCase
 from unittest.mock import Mock,patch
-import json
+import simplejson as json
+from decimal import Decimal
 import logging
 
 import convertor
@@ -14,11 +15,11 @@ class TestConvertor(TestCase):
         self.test_conv_1=convertor.Convertor('CZK',15.0,'EUR')
         self.test_conv_2=convertor.Convertor('Kč',15,'€')
         self.test_conv_3=convertor.Convertor('xxx',15,'€')
-        self.test_conv_3.convert_symbols()
+        self.test_conv_3._convert_symbols()
         self.test_conv_4=convertor.Convertor('CZK',15,'xxx')
-        self.test_conv_4.convert_symbols()
+        self.test_conv_4._convert_symbols()
         self.test_conv_5=convertor.Convertor('CZK','xxx','$')
-        self.test_conv_5.convert_symbols()
+        self.test_conv_5._convert_symbols()
         self.test_conv_6=convertor.Convertor('CZK',15.0)
         
     # test if attributes of convertor object are properly created and has correct types
@@ -48,25 +49,44 @@ class TestConvertor(TestCase):
     def test_convert_symbols(self):
         self.assertEqual(self.test_conv_2.input_currency,'Kč')
         self.assertEqual(self.test_conv_2.output_currency,'€')
-        self.test_conv_2.convert_symbols()
+        self.test_conv_2._convert_symbols()
         self.assertEqual(self.test_conv_2.input_currency,'CZK')
         self.assertEqual(self.test_conv_2.output_currency,'EUR')
 
     #test check_inputs function
     def test_chek_inputs(self):
         with self.assertRaises(convertor.WrongInputCurrencyError):
-             self.test_conv_3.check_inputs()
+             self.test_conv_3._check_inputs()
         with self.assertRaises(convertor.WrongOutputCurrencyError):
-             self.test_conv_4.check_inputs()
+             self.test_conv_4._check_inputs()
         with self.assertRaises(ValueError):
-             self.test_conv_5.check_inputs()
+             self.test_conv_5._check_inputs()
 
     @patch('forex_python.converter.CurrencyRates.get_rates')
     def test_currency_convert(self,MockRates):
         MockRates.return_value={'USD':20,'CZK':50}
         self.test_conv_1._get_actaul_rates()
         print(self.test_conv_1.forex_rates)
-        print(self.test_conv_1._convert_currency('USD','CZK',100))
+        result_1=self.test_conv_1._convert_currency('USD','CZK',100)
+        expected_1=250
+        result_2=self.test_conv_1._convert_currency('EUR','CZK',100)
+        expected_2=5000
+        result_3=self.test_conv_1._convert_currency('EUR','EUR',100)
+        expected_3=100
+        result_4=self.test_conv_1._convert_currency('CZK','EUR',100)
+        expected_4=2
+        result_4=self.test_conv_1._convert_currency('CZK','USD',100)
+        expected_4=40
+        result_4=self.test_conv_1._convert_currency('CZK','USD',0)
+        expected_4=0
+        self.assertEqual(expected_1,result_1)
+        self.assertIsInstance(result_1, Decimal)
+        self.assertEqual(expected_2,result_2)
+        self.assertIsInstance(result_2, Decimal)
+        self.assertEqual(expected_3,result_3)
+        self.assertIsInstance(result_3, Decimal)
+        self.assertEqual(expected_4,result_4)
+        self.assertIsInstance(result_4, Decimal)
 
 
 
