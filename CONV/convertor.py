@@ -26,50 +26,73 @@ class Convertor:
         self.amount=amount
 
         self.base_currency='EUR'
+        self.output_curr_list=[]
 
         t1=timeit.default_timer()
         # load the json file with currencies codes and symbols
         with open('forex_currencies.json',encoding="utf8") as f:
-            code_symbol_dict = json.load(f)
+            self.code_symbol_dict = json.load(f)
         
 
         #create dictionary with key as a symbol and code as a value
-        self.symbol_code_dict={key:value for value,key in code_symbol_dict.items()}
+        self.symbol_code_dict={key:value for value,key in self.code_symbol_dict.items()}
 
-        #create lists of currencies symbols and codes
-
-        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ODSTRANIT LISTY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        self.currency_code_list=list(code_symbol_dict.keys())
-        self.currency_symbol_list=list(self.symbol_code_dict.keys())
         t2=timeit.default_timer()
         #print(t2-t1)
 
     #function to convert input/outpu symbols into correspoding code of currency. 
-    def _convert_symbols(self):
-        if self.input_currency in self.currency_symbol_list:
-            self.input_currency=self.symbol_code_dict[self.input_currency]  
-
-        if self.output_currency in self.currency_symbol_list:
-            self.output_currency=self.symbol_code_dict[self.output_currency]
-
-    def _check_inputs(self):
+    def _create_and_check_inputs(self):
         try:
-            if self.input_currency not in self.currency_code_list:
+            if len(self.input_currency)==1:
+                self.input_currency=self.symbol_code_dict[self.input_currency]
+
+            if self.input_currency not in self.code_symbol_dict.keys():
                 raise WrongInputCurrencyError()
-            if self.output_currency not in self.currency_code_list and self.output_currency!=None:
-                raise WrongOutputCurrencyError()
-            if not isinstance(self.amount ,(int,float)):
-                raise ValueError
-        except WrongInputCurrencyError as e:
-            print(e.message)
-            raise
-        except WrongOutputCurrencyError as e:
-            print(e.message)
-            raise
-        except ValueError:
-            print('Amount must be a number' )
-            raise
+        except KeyError:
+            raise WrongInputCurrencyError()
+        
+
+    
+    def _create_and_check_outputs(self):
+
+        try:
+            if len(self.output_currency)==3:
+                self.output_curr_list=[self.output_currency]
+
+            elif len(self.output_currency)==1:
+                for curr_symbol in self.symbol_code_dict.keys():
+                    if (self.output_currency in curr_symbol and
+                            self.symbol_code_dict[curr_symbol] != self.input_currency):
+                        self.output_curr_list.append(self.symbol_code_dict[curr_symbol])
+            else:
+                raise WrongOutputCurrencyError
+        except KeyError:
+            raise WrongInputCurrencyError()
+        
+        if (not self.output_curr_list or not 
+                set(self.output_curr_list).issubset(self.code_symbol_dict.keys())):
+            raise WrongOutputCurrencyError
+        
+
+
+
+    # def _check_inputs(self):
+    #     try:
+    #         if self.input_currency not in self.code_symbol_dict.keys():
+    #             raise WrongInputCurrencyError()
+    #         # if self.output_currency not in self.code_symbol_dict.keys() and self.output_currency!=None:
+    #         #     raise WrongOutputCurrencyError()
+    #         if not isinstance(self.amount ,(int,float)):
+    #             raise ValueError
+    #     except WrongInputCurrencyError as e:
+    #         print(e.message)
+    #         raise
+    #     except WrongOutputCurrencyError as e:
+    #         print(e.message)
+    #         raise
+    #     except ValueError:
+    #         print('Amount must be a number' )
+    #         raise
 
     def _get_actaul_rates(self):
         
@@ -100,8 +123,8 @@ class Convertor:
             
           
     def to_convert(self):
-        """Use "private" functions _get_actual_rates(),_convert_symbols(),_check_outputs() and _conver_currency() 
-           to performe all the neccesary stuff to convert given inpits. 
+        """Use "private" functions _get_actual_rates(),_create_and_check_inputs(), _create_and_check_outputs()
+           and _convert_currency() to performe all the neccesary stuff to convert given inputs. 
            If there is no output currency the input currency is converted into all possilbew currencies
         """
         
@@ -109,26 +132,20 @@ class Convertor:
         
         t1=timeit.default_timer()
         
-        self._convert_symbols()
-        self._check_inputs()
+        self._create_and_check_inputs()
+        self._create_and_check_outputs()
+        #self._check_inputs()
         output_dict={}  
         t2=timeit.default_timer()
          
 
         # if the output value is not given the whole known(by forex) currencies are outputed
-        if self.output_currency==None:
-            for curr in self.currency_code_list:
-                # if the currency code is not support by forex-python(forex raise the error) than skip the currency
-                
-                converted_value=self._convert_currency(self.input_currency,curr,self.amount) 
-                converted_value=round(converted_value,2)
-                output_dict.update({curr:converted_value})
-                
-
-        else:
-            converted_value=self._convert_currency(self.input_currency,self.output_currency,self.amount)
+        
+        for curr in self.output_curr_list:
+            
+            converted_value=self._convert_currency(self.input_currency,curr,self.amount) 
             converted_value=round(converted_value,2)
-            output_dict={self.output_currency:converted_value}
+            output_dict.update({curr:converted_value})
 
         result_dict={
             "input":{"currency":self.input_currency,"amount":self.amount},
