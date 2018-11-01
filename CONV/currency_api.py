@@ -25,9 +25,9 @@ class Inputs(Resource):
         input_currency=args.input_currency
         output_currency=args.output_currency
         
-        convertor_obj=convertor.Convertor(input_currency,amount,output_currency)
+        convertor_obj=convertor.Convertor()
         try:
-            response=Response(response=convertor_obj.to_convert())
+            response=Response(response=convertor_obj.to_convert(input_currency,amount,output_currency))
         except convertor.WrongInputCurrencyError:
             abort_if_input_currency_not_exist()
         except convertor.WrongOutputCurrencyError:

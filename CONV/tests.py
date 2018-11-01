@@ -3,64 +3,41 @@ from unittest import TestCase
 from unittest.mock import Mock,patch
 import simplejson as json
 from decimal import Decimal
-import logging
+
 
 import convertor
-
-logging.basicConfig(level=logging.CRITICAL)
 
 class TestConvertor(TestCase):
 
     def setUp(self):
-        self.test_conv_1=convertor.Convertor('CZK',15.0,'EUR')
-        self.test_conv_2=convertor.Convertor('Kč',15,'€')
-        self.test_conv_3=convertor.Convertor('xxx',15,'€')
-        self.test_conv_3._convert_symbols()
-        self.test_conv_4=convertor.Convertor('CZK',15,'xxx')
-        self.test_conv_4._convert_symbols()
-        self.test_conv_5=convertor.Convertor('CZK','xxx','$')
-        self.test_conv_5._convert_symbols()
-        self.test_conv_6=convertor.Convertor('CZK',15.0)
+        self.test_conv_1=convertor.Convertor()
         
     # test if attributes of convertor object are properly created and has correct types
     def test_create_convertor(self):
-        self.assertTrue(hasattr(self.test_conv_1,'input_currency'))
-        self.assertIsInstance(self.test_conv_1.input_currency, str)
+        self.assertTrue(hasattr(self.test_conv_1,'base_currency'))
+        self.assertIsInstance(self.test_conv_1.base_currency, str)
 
-        self.assertTrue(hasattr(self.test_conv_1,'output_currency'))
-        self.assertIsInstance(self.test_conv_1.output_currency, str)
-
-        self.assertTrue(hasattr(self.test_conv_1,'amount'))
-        self.assertIsInstance(self.test_conv_1.amount, (int,float))
-
-        # self.assertTrue(hasattr(self.test_conv_1,'code_symbol_dict'))
-        # self.assertIsInstance(self.test_conv_1.code_symbol_dict, dict)
+        self.assertTrue(hasattr(self.test_conv_1,'code_symbol_dict'))
+        self.assertIsInstance(self.test_conv_1.code_symbol_dict, dict)
 
         self.assertTrue(hasattr(self.test_conv_1,'symbol_code_dict'))
-        self.assertIsInstance(self.test_conv_1.symbol_code_dict, dict)
-
-        self.assertTrue(hasattr(self.test_conv_1,'currency_code_list'))
-        self.assertIsInstance(self.test_conv_1.currency_code_list, list)
-
-        self.assertTrue(hasattr(self.test_conv_1,'currency_symbol_list'))
-        self.assertIsInstance(self.test_conv_1.currency_symbol_list, list)
+        self.assertIsInstance(self.test_conv_1.symbol_code_dict, (dict))
 
     #test convert_symbols function
-    def test_convert_symbols(self):
-        self.assertEqual(self.test_conv_2.input_currency,'Kč')
-        self.assertEqual(self.test_conv_2.output_currency,'€')
-        self.test_conv_2._convert_symbols()
-        self.assertEqual(self.test_conv_2.input_currency,'CZK')
-        self.assertEqual(self.test_conv_2.output_currency,'EUR')
-
-    #test check_inputs function
-    def test_chek_inputs(self):
+    def test_create_and_check_final_input_curr(self):
+        self.assertEqual(self.test_conv_1._create_and_check_final_input_curr('Kč'),'CZK')
+        self.assertEqual(self.test_conv_1._create_and_check_final_input_curr('€'),'EUR')
         with self.assertRaises(convertor.WrongInputCurrencyError):
-             self.test_conv_3._check_inputs()
+            self.test_conv_1._create_and_check_final_input_curr('xx')
+    
+    def test_create_and_check_final_output_curr(self):
+        self.assertEqual(self.test_conv_1._create_and_check_final_output_curr('Kč'),['CZK'])
+        self.assertEqual(self.test_conv_1._create_and_check_final_output_curr('€'),['EUR'])
+        expected_1=["USD","CAD","AUD","BRL","HKD","MXN","NZD","SGD"]
+        self.assertEqual(self.test_conv_1._create_and_check_final_output_curr('$'),expected_1)
         with self.assertRaises(convertor.WrongOutputCurrencyError):
-             self.test_conv_4._check_inputs()
-        with self.assertRaises(ValueError):
-             self.test_conv_5._check_inputs()
+            self.test_conv_1._create_and_check_final_output_curr('xx')
+        
 
     @patch('forex_python.converter.CurrencyRates.get_rates')
     def test_currency_convert(self,MockRates):
@@ -93,9 +70,9 @@ class TestConvertor(TestCase):
 
     #test to_convert function with mocked forex convert function with given output currency
     @patch('convertor.Convertor._convert_currency')
-    def test_to_convert(self,MockConvert):
+    def test_to_convert_specified_unique_output_curerncy(self,MockConvert):
         MockConvert.return_value=60
-        result_json=self.test_conv_1.to_convert()
+        result_json=self.test_conv_1.to_convert('CZK',15.0,'EUR')
         
         expected={"input":{"currency":"CZK","amount":15.0},"output":{"EUR":60}}
         expected_json=json.dumps(expected,indent=4)
@@ -105,16 +82,13 @@ class TestConvertor(TestCase):
 
     #test to_convert function with mocked forex convert function with no given output currency 
     @patch('convertor.Convertor._convert_currency')
-    def test_to_convert(self,MockConvert):
+    def test_to_convert_not_specified_output_curerncy(self,MockConvert):
         MockConvert.return_value=60
-        result_json=self.test_conv_6.to_convert()
-        #logging.debug(result_json)
+        result_json=self.test_conv_1.to_convert('CZK',15.0,None)
         
-        #Create fictive excpected dictionary of output currencies
-        output_curr_expected=dict(zip(self.test_conv_6.currency_code_list,
-        [MockConvert.return_value]*len(self.test_conv_6.currency_code_list)))
+        output_curr_expected=dict(zip(self.test_conv_1.code_symbol_dict.keys(),
+        [MockConvert.return_value]*len(self.test_conv_1.code_symbol_dict.keys())))
 
-        #logging.debug(output_curr_expected)
         expected={"input":{"currency":"CZK","amount":15.0},"output":output_curr_expected}
         expected_json=json.dumps(expected,indent=4)
         
