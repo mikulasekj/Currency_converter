@@ -64,7 +64,7 @@ class Convertor:
         elif given_output_currency is None:
             final_output_curr_list=self.code_symbol_dict.keys()
         # if (final_output_curr_list is None or
-        #         set(final_output_curr_list).issubset(self.code_symbol_dict.keys())) is False:
+        #         set(final_output_curr_list).issubset(self.code_symbol_dict.keys())) is Falsee:
         else:
             raise WrongOutputCurrencyError()
 
