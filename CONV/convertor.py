@@ -1,5 +1,6 @@
 from forex_python.converter import CurrencyRates
 from forex_python.converter import CurrencyCodes
+import requests
 import timeit
 
 from decimal import Decimal
@@ -15,7 +16,7 @@ class WrongOutputCurrencyError(Exception):
     def __init__(self):
         self.message='The output currency is not supported.'
         
-
+    
 class Convertor:
 
     #initialize the object of convertor class with given atributes
@@ -25,10 +26,19 @@ class Convertor:
 
         #t1=timeit.default_timer()
         # load the json file with currencies codes and symbols
-        with open('forex_currencies.json',encoding="utf8") as f:
+        with open('code_symbol.json',encoding="utf8") as f:
             self.code_symbol_dict = json.load(f)
         
+        with open('fixer_rates.json',encoding="utf8") as f:
+            rates_json = json.load(f)
+        
+        print(rates_json['timestamp'])
 
+        self.rates_dict=rates_json['rates']
+
+        
+
+        
         #create dictionary with key as a symbol and code as a value
         self.symbol_code_dict={key:value for value,key in self.code_symbol_dict.items()}
 
@@ -52,29 +62,46 @@ class Convertor:
         
 
     def _create_and_check_final_output_curr(self,given_output_currency):
-        final_output_curr_list=[]
+        semifinal_output_curr_list=[]
         if given_output_currency in self.code_symbol_dict.keys():
-            final_output_curr_list=[given_output_currency]
+            semifinal_output_curr_list=[given_output_currency]
 
         elif given_output_currency in self.symbol_code_dict.keys():
             for curr_symbol in self.symbol_code_dict.keys():
                 if given_output_currency in curr_symbol:
-                    final_output_curr_list.append(self.symbol_code_dict[curr_symbol])
+                    semifinal_output_curr_list.append(self.symbol_code_dict[curr_symbol])
 
         elif given_output_currency is None:
-            final_output_curr_list=self.code_symbol_dict.keys()
-        # if (final_output_curr_list is None or
-        #         set(final_output_curr_list).issubset(self.code_symbol_dict.keys())) is Falsee:
+            semifinal_output_curr_list=self.code_symbol_dict.keys()
         else:
             raise WrongOutputCurrencyError()
-
+        
+        final_output_curr_list=list(set(semifinal_output_curr_list)&set(self.rates_dict.keys()))
+        if not final_output_curr_list:
+            raise WrongOutputCurrencyError()
+        
         return final_output_curr_list
         
 
-
+    #DOPLNIT VYJÍMKY - co kdz6 dojdou pokusz  A OTESTOVAT!!!!!!!!
+    #KAM UKLÁDAT???????????
     def _get_actaul_rates(self):
+        "rates are actualized 1/hour"
+
+        base_url='http://data.fixer.io/api/latest'
+        access_key='access_key=1f45f76495a5436a9a6fabca5884f2a2'
+        rate_url=(base_url+'?'+access_key)       
         
-        self.forex_rates=CurrencyRates().get_rates(self.base_currency)
+        #self.forex_rates=CurrencyRates().get_rates(self.base_currency)
+        fixer_rates_response = requests.get(rate_url)
+        fixer_rates_json=fixer_rates_response.json()
+
+        #latest_timestamp=fixer_rates_json[timestamp]
+        with open('fixer_rates.json','w',encoding="utf8") as f:
+            json.dump(fixer_rates_json,f,indent=4)
+
+        
+
 
     def _convert_currency(self,input_curr,output_curr,amount):
         """Covnert input currency to output currency using base_currency EUR"""
@@ -85,14 +112,14 @@ class Convertor:
             converted_currency=amount_in_decimal
 
         elif input_curr==self.base_currency:
-            converted_currency=amount_in_decimal*Decimal(str(self.forex_rates[output_curr]))
+            converted_currency=amount_in_decimal*Decimal(str(self.rates_dict[output_curr]))
 
         elif output_curr==self.base_currency:
-            converted_currency=amount_in_decimal/Decimal(str(self.forex_rates[input_curr]))
+            converted_currency=amount_in_decimal/Decimal(str(self.rates_dict[input_curr]))
 
         else:
-            base_amount=amount_in_decimal/Decimal(str(self.forex_rates[input_curr]))
-            converted_currency=base_amount*Decimal(str(self.forex_rates[output_curr]))
+            base_amount=amount_in_decimal/Decimal(str(self.rates_dict[input_curr]))
+            converted_currency=base_amount*Decimal(str(self.rates_dict[output_curr]))
 
         return converted_currency
             
@@ -103,7 +130,7 @@ class Convertor:
            If there is no output currency the input currency is converted into all possilbew currencies
         """
         
-        self._get_actaul_rates()
+        #self._get_actaul_rates()
         
         #t1=timeit.default_timer()
         
