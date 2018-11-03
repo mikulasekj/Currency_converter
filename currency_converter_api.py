@@ -1,4 +1,5 @@
-"""This module solve the api using mainly Flask and flask_restful packages"""
+"""This module solve the api using mainly Flask and flask_restful packages
+"""
 
 from flask import Flask, Response
 from flask_restful import Resource, Api, reqparse, abort
