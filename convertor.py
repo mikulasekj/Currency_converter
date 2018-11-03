@@ -44,7 +44,7 @@ class Convertor:
         """During initialization are setted all class atributes.
             The code-symbol dictionary is created from stored JSON file.
             The symbol-code dictionary is created from code-symbol dictionary
-            to enable converting szmbols into codes.
+            to enable converting symbols into codes.
             Latest code-rates file is loaded and the timestamp is extracted.
             If the difference between lates stored timestamp and current
             timestamp is bigger than 1 hour (update peride on fixer.io) than 
@@ -135,6 +135,7 @@ class Convertor:
         If yes the response JSON file is stored as latest code-rates dictionary.
         Otherwise the FixerApiIsNotAvailableError or ConnectionError is raised. 
         The exceprions are handeld and program contue with non-actualized code-rates dictionary.
+        As note: the limit for free account on fixer.io is 1000 api calls per month.
         """
 
         base_url = 'http://data.fixer.io/api/latest'
