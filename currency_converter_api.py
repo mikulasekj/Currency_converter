@@ -1,5 +1,6 @@
 from flask import Flask,Response
 from flask_restful import Resource, Api, reqparse,abort
+import requests
 
 import convertor
 
@@ -11,6 +12,9 @@ def abort_if_input_currency_not_exist():
 
 def abort_if_ouput_currency_not_exist():
     abort(404, message="The ouput currency is not supported")
+
+def abort_if_request_fail():
+    abort(404, message='Fixer api failed - not latest rates may be used for conversion')
 
 class Inputs(Resource):
     def get(self):
@@ -32,6 +36,8 @@ class Inputs(Resource):
             abort_if_input_currency_not_exist()
         except convertor.WrongOutputCurrencyError:
             abort_if_ouput_currency_not_exist()
+        except (convertor.FixerApiIsNotAvailableError, requests.exceptions.ConnectionError):
+            abort_if_request_fail()
 
             
         response.content_type='application/json'
@@ -39,7 +45,7 @@ class Inputs(Resource):
         
 app.config['ERROR_404_HELP'] = False
 
-api.add_resource(Inputs, '/currency_convertor',endpoint='currency_convertor')
-#http://localhost:5000/currency_convertor?amount=10.2&input_currency=USD&output_currency=EUR
+api.add_resource(Inputs, '/currency_converter',endpoint='currency_converter')
+#http://localhost:5000/currency_converter?amount=10.2&input_currency=USD&output_currency=EUR
 if __name__ == '__main__':
     app.run(debug=False)

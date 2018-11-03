@@ -4,7 +4,10 @@
 3-letter string (code form of currency) or the symbol could be given
 as input or output currency. If the symbol is given as an input or output
 than both are converted into code form. This conversion is performed using
-code-symbol dictionary.
+code-symbol dictionary. The amount type is not checked in this class because
+it is checked directly in currency_convertor.py or currency_converter_api.py via
+argparse resp reqparse module. The amount could inserted as negative number and
+and in such a case the results are also negative.
 Currencies are converted using currency-rate dictionary for given base currency.
 Currency rate dictionary is obtained from fixer.io api and stored as JSON file.
 Currency rates on fixer.io site is updated ones per hour, so if the latest stored
@@ -38,8 +41,6 @@ class FixerApiIsNotAvailableError(Exception):
 class Convertor:
     """The class containg all neccessary staff for currency converting"""
     
-
-    #initialize the object of convertor class with given atributes
     def __init__(self):
         """During initialization are setted all class atributes.
             The code-symbol dictionary is created from stored JSON file.
@@ -49,11 +50,12 @@ class Convertor:
             If the difference between lates stored timestamp and current
             timestamp is bigger than 1 hour (update peride on fixer.io) than 
             actual code-rate JSON is downloaded from fixer.io and loaded again.
-            In case when the stored file is acual or the request fail the existing
+            In case when the stored file is actual or the request fail the existing
             code-rate dict is used.
         """
 
         self.base_currency = 'EUR'
+        self.not_actual_rates_warning = None
 
         with open('code_symbol.json', 'r', encoding="utf8") as file_in:
             self.code_symbol_dict = json.load(file_in)
@@ -69,7 +71,6 @@ class Convertor:
         update_time = 3600
         
         if time_diff_timestamp > update_time:
-            #pdb.set_trace()
             if self._get_actaul_rates():
                 with open('fixer_rates.json', 'r', encoding="utf8") as file_in:
                     rates_json = json.load(file_in)
@@ -90,8 +91,11 @@ class Convertor:
 
     
     def _create_and_check_final_input_curr(self, given_input_currency):
-        """Check if the input currency is valid code, if not check if it is a valid symbol.
-           if yes, convert it to the code. If neither one of conditions above are satisfied,
+        """3-letter string (code form of currency) or the symbol is given 
+           as a given_input_currency. If the input currency is symbol, than it is converted
+           into the exact corresponding code - that is differrent like for output currency - see below.
+           Check if the input currency is valid code, if not check if it is a valid symbol.
+           If yes, convert it to the code. If neither one of conditions above are satisfied,
            than raise the WrongInputCurrencyError
         """                
         if given_input_currency in self.code_symbol_dict.keys():
@@ -107,8 +111,11 @@ class Convertor:
         
 
     def _create_and_check_final_output_curr(self, given_output_currency):
-        """Check if the output currency is valid code, if not check if it is a valid symbol
-           and convert it to codes which symbols contanis the input currency smybol.
+        """3-letter string (code form of currency) or the symbol is given 
+           as a given_output_currency.
+           Check if the output currency is valid code, if not check if it is a valid symbol
+           and convert it to all codes contanaining the input currency smybol - including the input
+           currency if its symbol contains given output symbol.
            If the input is not entered than creates list of codes of all available currencies.
            Finally compare the list of output currencies with currencies provided by fixier rates
            and reduce the list of output currencies only on common currencies.
@@ -166,17 +173,15 @@ class Convertor:
                 #raise FixerApiIsNotAvailableError()
             #return False
         except (FixerApiIsNotAvailableError, requests.exceptions.ConnectionError):
-            print('Fixer api failed - not latest rates may be used for conversion')
-
+            #print('Fixer api failed - not latest rates may be used for conversion')
+            self.not_actual_rates_warning = 'Fixer api failed - not latest rates may be used for conversion'
             
-        
-
-        
-
 
     def _convert_currency(self, input_curr, output_curr, amount):
-        """Covnert input currency to output currency using base_currency EUR"""
-
+        """Covnert input currency to output currency using code-rate dictionary
+           and base_currency EUR. The inputed float types are converted int decimals
+           Amount type could be given with minus sign - results are than negative.
+        """
         amount_in_decimal = Decimal(str(amount))
 
         if input_curr == output_curr:
@@ -196,24 +201,14 @@ class Convertor:
             
           
     def to_convert(self, input_currency, amount, output_currency=None):
-        """Use "private" functions _get_actual_rates(),_create_and_check_inputs(),
-           _create_and_check_outputs()
-           and _convert_currency() to performe all the neccesary stuff to convert given inputs. 
-           If there is no output currency the input currency is converted into
-           all possilbew currencies
+        """Use "private" functions _create_and_check_inputs(),_create_and_check_outputs()
+           and _convert_currency() to performe all the neccesary stuff to convert given inputs.
         """
-        
-        #self._get_actaul_rates()
-        
-        #t1=timeit.default_timer()
         
         final_input_currency = self._create_and_check_final_input_curr(input_currency)
         final_output_currency_list = self._create_and_check_final_output_curr(output_currency)
         
         output_dict = {}  
-        #t2=timeit.default_timer()
-
-        # if the output value is not given the whole known(by forex) currencies are outputed
         
         for curr in final_output_currency_list:
             
@@ -221,14 +216,19 @@ class Convertor:
             converted_value = round(converted_value, 2)
             output_dict.update({curr:converted_value})
 
-        result_dict = {
-            "input":{"currency":final_input_currency, "amount":amount},
-            "output":output_dict
-            }
+        if self.not_actual_rates_warning == None:
+            result_dict = {
+                "input":{"amount":amount, "currency":final_input_currency},
+                "output":output_dict
+                }
 
+        else:
+            result_dict = {
+                "WARNING":self.not_actual_rates_warning,
+                "input":{"amount":amount, "currency":final_input_currency},
+                "output":output_dict
+                }
         result_json = json.dumps(result_dict, indent=4)
 
-        #t3=timeit.default_timer()
-        #print(t2-t1,',',t3-t2)
         return result_json
 

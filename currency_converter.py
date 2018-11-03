@@ -2,7 +2,7 @@ import argparse
 
 import convertor
 
-#ZABALIT TENTO KÓD DO TŘÍDY NEBO FUNKCE?
+
 def cli_aplication():
     parser = argparse.ArgumentParser()
     parser.add_argument('--amount', required=True, action="store", type=float)
