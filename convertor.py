@@ -134,7 +134,7 @@ class Convertor:
         than is verified if the key 'success' in response JSON file is 'true'. 
         If yes the response JSON file is stored as latest code-rates dictionary.
         Otherwise the FixerApiIsNotAvailableError or ConnectionError is raised. 
-        The exceprions are handeld and program contue with non-actualized code-rates dictionary
+        The exceprions are handeld and program contue with non-actualized code-rates dictionary.
         """
 
         base_url = 'http://data.fixer.io/api/latest'
