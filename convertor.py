@@ -143,8 +143,6 @@ class Convertor:
     
         try:
             fixer_rates_response = requests.get(rate_url)
-            print(fixer_rates_response.status_code)
-    
             
             if fixer_rates_response.status_code == 200:
                 fixer_rates_json = fixer_rates_response.json()
