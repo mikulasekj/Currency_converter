@@ -18,7 +18,6 @@ currency-rates dictionary is used.
 import time
 from decimal import Decimal
 import requests
-#import pdb
 import simplejson as json
 
 class WrongInputCurrencyError(Exception):
@@ -68,32 +67,20 @@ class Convertor:
         latest_updating_timestamp = rates_json['timestamp']
         curr_timestamp = time.time()        
         time_diff_timestamp = curr_timestamp-latest_updating_timestamp
-        update_time = 3600
+        update_time = 5
         
         if time_diff_timestamp > update_time:
             if self._get_actaul_rates():
                 with open('fixer_rates.json', 'r', encoding="utf8") as file_in:
                     rates_json = json.load(file_in)
-                #print('success'+ str(rates_json['success']))
 
         self.rates_dict = rates_json['rates']
             
-
-        # print(rates_json['timestamp'])
-        # print(curr_timestamp)
-        # print(time_diff_timestamp)
-
-        #create dictionary with key as a symbol and code as a value
-        #self.symbol_code_dict = {key:value for value, key in self.code_symbol_dict.items()}
-
-        #t2=timeit.default_timer()
-        #print(t2-t1)
-
-    
     def _create_and_check_final_input_curr(self, given_input_currency):
         """3-letter string (code form of currency) or the symbol is given 
            as a given_input_currency. If the input currency is symbol, than it is converted
-           into the exact corresponding code - that is differrent like for output currency - see below.
+           into the exact corresponding code - that is differrent
+           from output currency - see below.
            Check if the input currency is valid code, if not check if it is a valid symbol.
            If yes, convert it to the code. If neither one of conditions above are satisfied,
            than raise the WrongInputCurrencyError
@@ -155,7 +142,6 @@ class Convertor:
         rate_url = (base_url+'?'+access_key)   
     
         try:
-            #self.forex_rates=CurrencyRates().get_rates(self.base_currency)
             fixer_rates_response = requests.get(rate_url)
             print(fixer_rates_response.status_code)
     
@@ -163,18 +149,14 @@ class Convertor:
             if fixer_rates_response.status_code == 200:
                 fixer_rates_json = fixer_rates_response.json()
                 if fixer_rates_json['success']:
-            # doplnit kdyz vycerpam pokusy
                     with open('fixer_rates.json', 'w', encoding="utf8") as file_out:
                         json.dump(fixer_rates_json, file_out, indent=4)
                     return True
-                #else:
             raise FixerApiIsNotAvailableError()
-            #else:
-                #raise FixerApiIsNotAvailableError()
-            #return False
         except (FixerApiIsNotAvailableError, requests.exceptions.ConnectionError):
-            #print('Fixer api failed - not latest rates may be used for conversion')
-            self.not_actual_rates_warning = 'Fixer api failed - not latest rates may be used for conversion'
+            self.not_actual_rates_warning = ('Fixer api failed - '
+                                             'not latest rates may be used for conversion')
+            
             
 
     def _convert_currency(self, input_curr, output_curr, amount):
@@ -216,7 +198,7 @@ class Convertor:
             converted_value = round(converted_value, 2)
             output_dict.update({curr:converted_value})
 
-        if self.not_actual_rates_warning == None:
+        if self.not_actual_rates_warning is None:
             result_dict = {
                 "input":{"amount":amount, "currency":final_input_currency},
                 "output":output_dict
