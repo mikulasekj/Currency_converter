@@ -8,9 +8,21 @@ import convertor
 def cli_aplication():
     """Function that wraps the argparse part"""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--amount', required=True, action="store", type=float)
-    parser.add_argument('--input_currency', required=True, action="store")
-    parser.add_argument('--output_currency', required=False, action="store")
+    parser.add_argument('--amount', required=True, action="store", type=float,
+                        help=("Required argument."
+                              "The argument is for input the amount to convert"
+                              "Int or float type is valid input"))
+    parser.add_argument('--input_currency', required=True, action="store",
+                        help=("Required argument."
+                              "3-capital letter code or symbol of currency is valid input"
+                              "Argument determines the currency from which will"
+                              "be the amount converted."))
+    parser.add_argument('--output_currency', required=False, action="store",
+                        help=("Not Required argument."
+                              "3-capital letter code or symbol of currency is valid input"
+                              "The argument determines the currency to which"
+                              "will be the amount converted. If the argument is not specified"
+                              "than conversion is performed into all supported currencies."))
 
     args = parser.parse_args()
     amount = args.amount
