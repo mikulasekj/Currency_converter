@@ -1,6 +1,16 @@
-## Main purpose and descritpion of the project
+### Main purpose and descritpion of the project
 The repsoitory contains program for converting currencies which can be managed via web api application or cli aplication.
 
+### Inputs required by the program
+- cli aplication examples:
+  - currency_converter.py --amount 100.0 --input_currency EUR --output_currency CZK
+  - currency_converter.py --amount 0.9 --input_currency ¥ --output_currency AUD
+- web api aplication examples:
+  - GET /currency_converter?amount=0.9&input_currency=USD&output_currency=EUR HTTP/1.1
+  - GET /currency_converter?amount=0.9&input_currency=$&output_currency=CZK HTTP/1.1
+ 
+ whole enviroment are set up by command *pip install -r requirements.txt*
+  
 ### Particular files purposes:
 
 - convertor.py
